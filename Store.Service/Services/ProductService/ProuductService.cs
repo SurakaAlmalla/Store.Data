@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Store.Data.Entities;
 using Store.Repository.Interfaces;
+using Store.Repository.Specification.ProductSpecs;
+using Store.Service.Services.Helper;
 using Store.Service.Services.ProductService.Dtos;
 
 namespace Store.Service.Services.ProductService
@@ -30,9 +32,16 @@ namespace Store.Service.Services.ProductService
             return mappedBrands;
         }
 
-        public async Task<IReadOnlyList<ProuductDetailsDto>> GetAllProductAsync()
+        public async Task<PaginatedResultDto<ProuductDetailsDto>> GetAllProductAsync(ProductSpecification input )
         {
-            var products = await _unitOfWork.Repository<Product, int>().GetAllAsync();
+
+            var specs = new ProductWithSpecification ( input );
+
+            var products = await _unitOfWork.Repository<Product, int>().GetAllWithSpecificationAsync(specs);
+
+            var countSpecs = new productWithCountSpecification(input);
+
+            var count = await _unitOfWork.Repository < Product ,int>().GetCountSpecificationAsync(countSpecs);
 
             //var mappedProducts = products.Select(X => new ProuductDetailsDto
 
@@ -49,7 +58,9 @@ namespace Store.Service.Services.ProductService
 
             var mappedProducts = _mapper.Map<IReadOnlyList<ProuductDetailsDto>>(products);
 
-            return mappedProducts;
+
+
+            return new PaginatedResultDto<ProuductDetailsDto>(input.PageIndex,input.PageSize, count, mappedProducts);
         }
 
         public async Task<IReadOnlyList<BrandTypeDetailsDto>> GetAllTypesAsync()
@@ -73,7 +84,9 @@ namespace Store.Service.Services.ProductService
             if (productId is null)
                 throw new Exception("Id is null");
 
-            var product = await _unitOfWork.Repository<Product, int>().GetByIdAsync(productId.Value);
+            var specs = new ProductWithSpecification(productId);
+
+            var product = await _unitOfWork.Repository<Product, int>().GetWithSpecificationByIdAsync(specs);
 
             if (product is null)
                 throw new Exception("product Not Found");

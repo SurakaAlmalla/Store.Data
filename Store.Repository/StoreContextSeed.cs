@@ -29,6 +29,8 @@ namespace Store.Repository
                     if (types is not null)
                         await context.ProductsTypes.AddRangeAsync(types);
                 }
+                    await context.SaveChangesAsync(); // i had an error with set the data from seedin in the dataBAse whene i Run the Program 
+                                                      // so Chenge the coniction string in (appsettings) and add the savechenge point in the (StoreContextSeed)
 
                 if (context.Products != null && !context.Products.Any())
                 {
@@ -46,6 +48,7 @@ namespace Store.Repository
                 var logger = loggerFactory.CreateLogger<StoreContextSeed>();
                 logger.LogError(ex.Message);
             }
+            //
         }
     }
 }
